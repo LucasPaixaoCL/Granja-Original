@@ -17,18 +17,47 @@ import { AuthProvider, RequireAuth, PublicOnly } from '@/contexts/AuthContext';
 import { ForgotPassword } from '@/pages/ForgotPassword';
 import { ResetPassword } from '@/pages/ResetPassword';
 
+
+
+
 function Layout({ children }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);      // drawer (mobile)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // colapso (desktop)
+
+  const handleBurger = () => {
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      setIsSidebarCollapsed(v => !v);
+    } else {
+      setIsSidebarOpen(true);
+    }
+  };
+  // Decide: em telas >= 1024px (lg) colapsa/expande; senão abre/fecha o drawer
+  const handleToggleSidebar = () => {
+    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    if (isDesktop) {
+      setIsSidebarCollapsed((c) => !c);
+    } else {
+      setIsSidebarOpen((o) => !o);
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar isCollapsed={isSidebarCollapsed} />
-      <div className="flex-1 flex flex-col">
-        <Header onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        isCollapsed={isSidebarCollapsed}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+      <div className="flex-1 min-w-0 flex flex-col">{/* <-- min-w-0 evita “sumir” conteúdo */}
+        <Header onToggleSidebar={handleBurger} />
         <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
     </div>
   );
 }
+
+
+
 
 function ProtectedLayout({ children }) {
   return (
@@ -288,10 +317,90 @@ function App() {
               }
             />
 
-            <Route path="/descartes" element={<ProtectedLayout><GenericList title="Descartes" description="Registro de descartes" data={[]} columns={[]} /></ProtectedLayout>} />
-            <Route path="/mortes" element={<ProtectedLayout><GenericList title="Mortes" description="Registro de mortes" data={[]} columns={[]} /></ProtectedLayout>} />
-            <Route path="/vacinas" element={<ProtectedLayout><GenericList title="Vacinas" description="Controle de vacinas" data={[]} columns={[]} /></ProtectedLayout>} />
-            <Route path="/pesos" element={<ProtectedLayout><GenericList title="Controle de Peso" description="Controle de peso dos animais" data={[]} columns={[]} /></ProtectedLayout>} />
+            <Route
+              path="/descartes"
+              element={
+                <ProtectedLayout>
+                  <GenericList
+                    title="Descartes"
+                    description="Registro de descartes"
+                    data={[]}
+                    columns={[
+                      { key: 'lote', label: 'Lote' },
+                      { key: 'quantidade', label: 'Quantidade' },
+                      { key: 'motivo', label: 'Motivo' },
+                      { key: 'data', label: 'Data' },
+                      { key: 'responsavel', label: 'Responsável' },
+                    ]}
+                    modalConfig={modalConfigs.descartes}
+                  />
+                </ProtectedLayout>
+              }
+            />
+
+            <Route
+              path="/mortes"
+              element={
+                <ProtectedLayout>
+                  <GenericList
+                    title="Mortes"
+                    description="Registro de mortes"
+                    data={[]}
+                    columns={[
+                      { key: 'lote', label: 'Lote' },
+                      { key: 'animal', label: 'Animal' },
+                      { key: 'causa', label: 'Causa' },
+                      { key: 'data', label: 'Data' },
+                      { key: 'idade', label: 'Idade (semanas)' },
+                      { key: 'responsavel', label: 'Responsável' },
+                    ]}
+                    modalConfig={modalConfigs.mortes}
+                  />
+                </ProtectedLayout>
+              }
+            />
+
+            <Route
+              path="/vacinas"
+              element={
+                <ProtectedLayout>
+                  <GenericList
+                    title="Vacinas"
+                    description="Controle de vacinas"
+                    data={[]}
+                    columns={[
+                      { key: 'lote', label: 'Lote' },
+                      { key: 'tipoVacina', label: 'Tipo de Vacina' },
+                      { key: 'quantidade', label: 'Quantidade' },
+                      { key: 'dataAplicacao', label: 'Data de Aplicação' },
+                      { key: 'veterinario', label: 'Veterinário' },
+                    ]}
+                    modalConfig={modalConfigs.vacinas}
+                  />
+                </ProtectedLayout>
+              }
+            />
+
+            <Route
+              path="/pesos"
+              element={
+                <ProtectedLayout>
+                  <GenericList
+                    title="Controle de Peso"
+                    description="Controle de peso dos animais"
+                    data={[]}
+                    columns={[
+                      { key: 'lote', label: 'Lote' },
+                      { key: 'animal', label: 'Animal' },
+                      { key: 'peso', label: 'Peso (kg)' },
+                      { key: 'data', label: 'Data' },
+                      { key: 'responsavel', label: 'Responsável' },
+                    ]}
+                    modalConfig={modalConfigs.pesos}
+                  />
+                </ProtectedLayout>
+              }
+            />
             <Route path="/formas_pgto" element={<ProtectedLayout><GenericList title="Formas de Pagamento" description="Gerencie as formas de pagamento" data={[]} columns={[]} /></ProtectedLayout>} />
             <Route path="/formatos" element={<ProtectedLayout><GenericList title="Formatos" description="Gerencie os formatos" data={[]} columns={[]} /></ProtectedLayout>} />
 

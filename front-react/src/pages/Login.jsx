@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Login() {
-  const { login } = useAuth();              // login() já faz setUser no contexto
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,7 +40,7 @@ export function Login() {
       const me = await login({
         email,
         password,
-        remember: !!rememberMe === true,   // garante boolean
+        remember: !!rememberMe === true,
       });
 
       const params = new URLSearchParams(location.search);
@@ -62,7 +62,7 @@ export function Login() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA4KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
       </div>
 
-      {/* Círculos/partículas (igual ao seu) */}
+      {/* Círculos/partículas */}
       <motion.div className="absolute top-20 left-20 w-80 h-80 bg-blue-500/40 rounded-full blur-3xl"
         animate={{ scale: [1, 1.2, 1], x: [0, 60, 0], y: [0, 40, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
@@ -95,7 +95,7 @@ export function Login() {
             <p className="text-blue-800 text-base">Entre na sua conta para continuar</p>
           </motion.div>
 
-          {/* Form */}
+          {/* Form ÚNICO */}
           <motion.form initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.6 }} onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div className="space-y-2">
@@ -187,30 +187,7 @@ export function Login() {
               </Button>
             </motion.div>
           </motion.form>
-          <motion.form onSubmit={handleSubmit} className="space-y-5">
-            {/* campos */}
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={setRememberMe}
-                  className="border-blue-200/60 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-400"
-                />
-                <Label htmlFor="remember" className="cursor-pointer hover:text-blue-800 transition-colors">
-                  Lembrar-me
-                </Label>
-              </div>
 
-              <Link
-                to="/esqueci-senha"
-                className="text-blue-800 hover:text-black font-medium"
-              >
-                Esqueceu a senha?
-              </Link>
-            </div>
-            {/* botão etc... */}
-          </motion.form>
           {/* Footer */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className="text-center text-sm mt-6">
             Não tem uma conta?{' '}

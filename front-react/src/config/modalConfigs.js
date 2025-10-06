@@ -227,3 +227,195 @@ export const modalConfigs = {
     defaultValues: { cliente: '', quantidade: 0, valor: 0, data: '' }
   }
 }
+// Schemas adicionais para as páginas que faltavam
+export const controlePesoSchema = z.object({
+  lote: z.string().min(1, 'Lote é obrigatório'),
+  peso: z.number().min(0.1, 'Peso deve ser positivo'),
+  data: z.string().min(1, 'Data é obrigatória'),
+  responsavel: z.string().min(2, 'Responsável é obrigatório'),
+  observacoes: z.string().optional(),
+});
+
+export const vacinaSchema = z.object({
+  lote: z.string().min(1, 'Lote é obrigatório'),
+  tipoVacina: z.string().min(1, 'Tipo de vacina é obrigatório'),
+  quantidade: z.number().min(1, 'Quantidade deve ser positiva'),
+  dataAplicacao: z.string().min(1, 'Data de aplicação é obrigatória'),
+  proximaDose: z.string().optional(),
+  veterinario: z.string().min(2, 'Veterinário responsável é obrigatório'),
+  observacoes: z.string().optional(),
+})
+
+export const descarteSchema = z.object({
+  lote: z.string().min(1, 'Lote é obrigatório'),
+  quantidade: z.number().min(1, 'Quantidade deve ser positiva'),
+  motivo: z.string().min(1, 'Motivo é obrigatório'),
+  data: z.string().min(1, 'Data é obrigatória'),
+  responsavel: z.string().min(2, 'Responsável é obrigatório'),
+  observacoes: z.string().optional(),
+})
+
+export const morteSchema = z.object({
+  lote: z.string().min(1, 'Lote é obrigatório'),
+  quantidade: z.number().int().min(1, 'Quantidade deve ser no mínimo 1'),
+  causa: z.string().min(1, 'Causa é obrigatória'),
+  data: z.string().min(1, 'Data é obrigatória'),
+  idade: z.number().min(0, 'Idade deve ser positiva'),
+  responsavel: z.string().min(2, 'Responsável é obrigatório'),
+  observacoes: z.string().optional(),
+});
+
+// Adicionando as novas configurações ao objeto modalConfigs
+// ⬇️ Substitui o modalConfigs.pesos (sem o campo 'animal')
+modalConfigs.pesos = {
+  title: "Registrar Controle de Peso",
+  description: "Preencha os dados do controle de peso",
+  buttonText: "Novo Registro de Peso",
+  schema: controlePesoSchema,
+  fields: [
+    {
+      name: 'lote',
+      label: 'Lote',
+      type: 'select',
+      placeholder: 'Selecione o lote',
+      options: [
+        { value: 'Lote 001', label: 'Lote 001' },
+        { value: 'Lote 002', label: 'Lote 002' },
+        { value: 'Lote 003', label: 'Lote 003' },
+        { value: 'Lote 004', label: 'Lote 004' }
+      ]
+    },
+    { name: 'peso', label: 'Média de Peso (kg)', type: 'number', placeholder: '0.0' },
+    { name: 'data', label: 'Data da Pesagem', type: 'date', placeholder: '' },
+    { name: 'responsavel', label: 'Responsável', type: 'text', placeholder: 'Nome do responsável' },
+    { name: 'observacoes', label: 'Observações', type: 'text', placeholder: 'Observações adicionais (opcional)' },
+  ],
+  defaultValues: { lote: '', peso: 0, data: '', responsavel: '', observacoes: '' }
+};
+
+modalConfigs.vacinas = {
+  title: "Registrar Aplicação de Vacina",
+  description: "Preencha os dados da aplicação de vacina",
+  buttonText: "Nova Vacinação",
+  schema: vacinaSchema,
+  fields: [
+    {
+      name: 'lote',
+      label: 'Lote',
+      type: 'select',
+      placeholder: 'Selecione o lote',
+      options: [
+        { value: 'Lote 001', label: 'Lote 001' },
+        { value: 'Lote 002', label: 'Lote 002' },
+        { value: 'Lote 003', label: 'Lote 003' },
+        { value: 'Lote 004', label: 'Lote 004' }
+      ]
+    },
+    {
+      name: 'tipoVacina',
+      label: 'Tipo de Vacina',
+      type: 'select',
+      placeholder: 'Selecione o tipo de vacina',
+      options: [
+        { value: 'Newcastle', label: 'Newcastle' },
+        { value: 'Bronquite Infecciosa', label: 'Bronquite Infecciosa' },
+        { value: 'Gumboro', label: 'Gumboro' },
+        { value: 'Marek', label: 'Marek' },
+        { value: 'Coriza', label: 'Coriza' },
+        { value: 'Bouba Aviária', label: 'Bouba Aviária' }
+      ]
+    },
+    { name: 'quantidade', label: 'Quantidade de Animais', type: 'number', placeholder: '0' },
+    { name: 'dataAplicacao', label: 'Data de Aplicação', type: 'date', placeholder: '' },
+    { name: 'proximaDose', label: 'Próxima Dose', type: 'date', placeholder: 'Data da próxima dose (opcional)' },
+    { name: 'veterinario', label: 'Veterinário Responsável', type: 'text', placeholder: 'Nome do veterinário' },
+    { name: 'observacoes', label: 'Observações', type: 'text', placeholder: 'Observações adicionais (opcional)' },
+  ],
+  defaultValues: { lote: '', tipoVacina: '', quantidade: 0, dataAplicacao: '', proximaDose: '', veterinario: '', observacoes: '' }
+}
+
+modalConfigs.descartes = {
+  title: "Registrar Descarte",
+  description: "Preencha os dados do descarte",
+  buttonText: "Novo Descarte",
+  schema: descarteSchema,
+  fields: [
+    {
+      name: 'lote',
+      label: 'Lote',
+      type: 'select',
+      placeholder: 'Selecione o lote',
+      options: [
+        { value: 'Lote 001', label: 'Lote 001' },
+        { value: 'Lote 002', label: 'Lote 002' },
+        { value: 'Lote 003', label: 'Lote 003' },
+        { value: 'Lote 004', label: 'Lote 004' }
+      ]
+    },
+    { name: 'quantidade', label: 'Quantidade', type: 'number', placeholder: '0' },
+    {
+      name: 'motivo',
+      label: 'Motivo do Descarte',
+      type: 'select',
+      placeholder: 'Selecione o motivo',
+      options: [
+        { value: 'Ovos Quebrados', label: 'Ovos Quebrados' },
+        { value: 'Ovos Sujos', label: 'Ovos Sujos' },
+        { value: 'Ovos Pequenos', label: 'Ovos Pequenos' },
+        { value: 'Ovos Deformados', label: 'Ovos Deformados' },
+        { value: 'Ovos com Casca Mole', label: 'Ovos com Casca Mole' },
+        { value: 'Ovos Velhos', label: 'Ovos Velhos' },
+        { value: 'Outros', label: 'Outros' }
+      ]
+    },
+    { name: 'data', label: 'Data do Descarte', type: 'date', placeholder: '' },
+    { name: 'responsavel', label: 'Responsável', type: 'text', placeholder: 'Nome do responsável' },
+    { name: 'observacoes', label: 'Observações', type: 'text', placeholder: 'Observações adicionais (opcional)' },
+  ],
+  defaultValues: { lote: '', quantidade: 0, motivo: '', data: '', responsavel: '', observacoes: '' }
+}
+
+
+modalConfigs.mortes = {
+  title: "Registrar Morte de Animal",
+  description: "Preencha os dados da morte do(s) animal(is)",
+  buttonText: "Novo Registro de Morte",
+  schema: morteSchema,
+  fields: [
+    {
+      name: 'lote',
+      label: 'Lote',
+      type: 'select',
+      placeholder: 'Selecione o lote',
+      options: [
+        { value: 'Lote 001', label: 'Lote 001' },
+        { value: 'Lote 002', label: 'Lote 002' },
+        { value: 'Lote 003', label: 'Lote 003' },
+        { value: 'Lote 004', label: 'Lote 004' }
+      ]
+    },
+    { name: 'quantidade', label: 'Quantidade de Animais', type: 'number', placeholder: '1' },
+    {
+      name: 'causa',
+      label: 'Causa da Morte',
+      type: 'select',
+      placeholder: 'Selecione a causa',
+      options: [
+        { value: 'Doença Respiratória', label: 'Doença Respiratória' },
+        { value: 'Doença Digestiva', label: 'Doença Digestiva' },
+        { value: 'Estresse', label: 'Estresse' },
+        { value: 'Acidente', label: 'Acidente' },
+        { value: 'Idade Avançada', label: 'Idade Avançada' },
+        { value: 'Predação', label: 'Predação' },
+        { value: 'Causa Desconhecida', label: 'Causa Desconhecida' },
+        { value: 'Outras', label: 'Outras' }
+      ]
+    },
+    { name: 'data', label: 'Data da Morte', type: 'date', placeholder: '' },
+    { name: 'idade', label: 'Idade (semanas)', type: 'number', placeholder: '0' },
+    { name: 'responsavel', label: 'Responsável', type: 'text', placeholder: 'Nome do responsável' },
+    { name: 'observacoes', label: 'Observações', type: 'text', placeholder: 'Observações adicionais (opcional)' },
+  ],
+  defaultValues: { lote: '', quantidade: 1, causa: '', data: '', idade: 0, responsavel: '', observacoes: '' }
+};
+
