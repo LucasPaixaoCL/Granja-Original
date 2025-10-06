@@ -1,15 +1,21 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { motion } from 'framer-motion'
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react'
-import { authApi } from '@/lib/http'
+// src/pages/Login.jsx
+import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Login() {
-  const { setUser } = useAuth(); // pega do context
+  const { login } = useAuth();              // login() já faz setUser no contexto
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -30,26 +36,20 @@ export function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
-    // fluxo simples embrulhado no toast.promise
-    const flow = (async () => {
-      await authApi.csrf();
-      await authApi.login({ email, password, remember: rememberMe });
-      return authApi.me();
-    })();
-
-    toast.promise(flow, {
-      loading: 'Entrando…',
-      success: (me) => `Bem-vindo, ${me?.name || 'usuário'}!`,
-      error: (err) => mapErr(err),
-    });
-
     try {
-      const me = await flow;
-      setUser(me); // salva no seu AuthContext
-      // opcional: navigate('/dashboard');
-    } catch (_) {
-      // erro já tratado pelo toast.promise
+      const me = await login({
+        email,
+        password,
+        remember: !!rememberMe === true,   // garante boolean
+      });
+
+      const params = new URLSearchParams(location.search);
+      const redirectTo = params.get('redirectTo') || '/home';
+
+      toast.success(`Bem-vindo, ${me?.name || 'usuário'}!`);
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      toast.error(mapErr(err));
     } finally {
       setIsLoading(false);
     }
@@ -57,127 +57,51 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 overflow-hidden relative bg-gradient-to-br from-[#1e3a8a] via-[#2563eb] to-[#3b82f6]">
-      {/* Background com gradiente animado e grid pattern */}
+      {/* Background com gradiente e grid */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA4KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
       </div>
 
-      {/* Círculos flutuantes animados com cores mais vibrantes */}
-      <motion.div
-        className="absolute top-20 left-20 w-80 h-80 bg-blue-500/40 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          x: [0, 60, 0],
-          y: [0, 40, 0],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div
-        className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-500/40 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.3, 1],
-          x: [0, -40, 0],
-          y: [0, -60, 0],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div
-        className="absolute top-1/2 left-1/3 w-72 h-72 bg-sky-400/30 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.4, 1],
-          x: [0, -50, 0],
-          y: [0, 50, 0],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-
-      {/* Partículas flutuantes */}
+      {/* Círculos/partículas (igual ao seu) */}
+      <motion.div className="absolute top-20 left-20 w-80 h-80 bg-blue-500/40 rounded-full blur-3xl"
+        animate={{ scale: [1, 1.2, 1], x: [0, 60, 0], y: [0, 40, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
+      <motion.div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-500/40 rounded-full blur-3xl"
+        animate={{ scale: [1, 1.3, 1], x: [0, -40, 0], y: [0, -60, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }} />
+      <motion.div className="absolute top-1/2 left-1/3 w-72 h-72 bg-sky-400/30 rounded-full blur-3xl"
+        animate={{ scale: [1, 1.4, 1], x: [0, -50, 0], y: [0, 50, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }} />
       {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 bg-white/30 rounded-full"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -30, 0],
-            opacity: [0.2, 0.8, 0.2],
-          }}
-          transition={{
-            duration: 3 + Math.random() * 2,
-            repeat: Infinity,
-            delay: Math.random() * 2,
-          }}
-        />
+        <motion.div key={i} className="absolute w-1 h-1 bg-white/30 rounded-full"
+          style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
+          animate={{ y: [0, -30, 0], opacity: [0.2, 0.8, 0.2] }}
+          transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 2 }} />
       ))}
 
-      {/* Container principal com glassmorphism */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 w-full max-w-md"
-      >
-        {/* Card de login com efeito glass */}
+      {/* Card */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 w-full max-w-md">
         <div className="bg-white rounded-3xl p-8 shadow-2xl border border-white/30">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-center mb-8"
-          >
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }} className="text-center mb-8">
             <motion.div
               className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br text-white from-blue-400 via-blue-500 to-indigo-600 mb-4 shadow-lg shadow-blue-500/50"
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
-              animate={{
-                boxShadow: [
-                  "0 10px 40px rgba(59, 130, 246, 0.5)",
-                  "0 10px 60px rgba(99, 102, 241, 0.6)",
-                  "0 10px 40px rgba(59, 130, 246, 0.5)",
-                ],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
+              whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.95 }}
+              animate={{ boxShadow: ["0 10px 40px rgba(59,130,246,.5)", "0 10px 60px rgba(99,102,241,.6)", "0 10px 40px rgba(59,130,246,.5)"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
               <LogIn className="w-10 h-10 " />
             </motion.div>
-            <h1 className="text-4xl font-bold  mb-2 tracking-tight">Bem-vindo</h1>
+            <h1 className="text-4xl font-bold mb-2 tracking-tight">Bem-vindo</h1>
             <p className="text-blue-800 text-base">Entre na sua conta para continuar</p>
           </motion.div>
 
           {/* Form */}
-          <motion.form
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            onSubmit={handleSubmit}
-            className="space-y-5"
-          >
-            {/* Email Input */}
+          <motion.form initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.6 }} onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium ">
-                Email
-              </Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-800 z-10 group-focus-within:text-black transition-colors" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-800 z-10 transition-colors" />
                 <Input
                   id="email"
                   type="email"
@@ -190,16 +114,14 @@ export function Login() {
               </div>
             </div>
 
-            {/* Password Input */}
+            {/* Senha */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Senha
-              </Label>
+              <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-800 z-10 group-focus-within:text- transition-colors" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-800 z-10 transition-colors" />
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -218,33 +140,26 @@ export function Login() {
               </div>
             </div>
 
-            {/* Remember & Forgot */}
+            {/* Lembrar-me + Esqueceu a senha */}
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="remember"
                   checked={rememberMe}
-                  onCheckedChange={setRememberMe}
+                  onCheckedChange={(c) => setRememberMe(c === true)}
                   className="border-blue-200/60 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-400"
                 />
-                <Label
-                  htmlFor="remember"
-                  className=" cursor-pointer hover:text-blue-800 transition-colors"
-                >
+                <Label htmlFor="remember" className="cursor-pointer hover:text-blue-800 transition-colors">
                   Lembrar-me
                 </Label>
               </div>
-              <motion.a
-                href="#"
-                className="text-blue-800 hover:text-black transition-colors font-medium"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+
+              <Link to="/esqueci-senha" className="text-blue-800 hover:text-black font-medium">
                 Esqueceu a senha?
-              </motion.a>
+              </Link>
             </div>
 
-            {/* Submit Button */}
+            {/* Botão */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 type="submit"
@@ -258,7 +173,7 @@ export function Login() {
                       <motion.div
                         className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                       />
                       Entrando...
                     </>
@@ -272,63 +187,50 @@ export function Login() {
               </Button>
             </motion.div>
           </motion.form>
+          <motion.form onSubmit={handleSubmit} className="space-y-5">
+            {/* campos */}
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={setRememberMe}
+                  className="border-blue-200/60 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-400"
+                />
+                <Label htmlFor="remember" className="cursor-pointer hover:text-blue-800 transition-colors">
+                  Lembrar-me
+                </Label>
+              </div>
+
+              <Link
+                to="/esqueci-senha"
+                className="text-blue-800 hover:text-black font-medium"
+              >
+                Esqueceu a senha?
+              </Link>
+            </div>
+            {/* botão etc... */}
+          </motion.form>
           {/* Footer */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-            className="text-center text-sm mt-6"
-          >
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className="text-center text-sm mt-6">
             Não tem uma conta?{' '}
-            <motion.a
-              href="#"
-              className="text-blue-800 hover:text-black font-semibold transition-colors inline-block"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.a href="#" className="text-blue-800 hover:text-black font-semibold transition-colors inline-block" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               Cadastre-se
             </motion.a>
           </motion.p>
         </div>
 
-        {/* Floating particles ao redor do card */}
-        <motion.div
-          className="absolute -top-6 -right-6 w-24 h-24 bg-blue-400/30 rounded-full blur-2xl"
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-6 -left-6 w-20 h-20 bg-indigo-400/30 rounded-full blur-2xl"
-          animate={{
-            scale: [1, 1.4, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute top-1/2 -right-8 w-16 h-16 bg-sky-400/20 rounded-full blur-xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
+        {/* Partículas extras */}
+        <motion.div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-400/30 rounded-full blur-2xl"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} />
+        <motion.div className="absolute -bottom-6 -left-6 w-20 h-20 bg-indigo-400/30 rounded-full blur-2xl"
+          animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
+        <motion.div className="absolute top-1/2 -right-8 w-16 h-16 bg-sky-400/20 rounded-full blur-xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} />
       </motion.div>
     </div>
-  )
+  );
 }

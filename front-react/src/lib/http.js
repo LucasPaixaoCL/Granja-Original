@@ -1,6 +1,9 @@
-// src/services/http.js
+// src/lib/http.js
 import axios from 'axios';
 import { api, API_BASE } from '@/config/axios.config';
+
+// Helper: caminho padrão do CSRF do Sanctum (na RAIZ do domínio)
+const csrfPath = '/sanctum/csrf-cookie';
 
 // CRUD base, sempre retornando .data
 export const http = {
@@ -13,11 +16,32 @@ export const http = {
 
 // Fluxo de autenticação (Sanctum SPA, cookie-based)
 export const authApi = {
-  // Precisa ser na raiz do domínio do Laravel (não em /api)
-  csrf: () => axios.get(`${API_BASE}/csrf-cookie`, { withCredentials: true }),
+  /**
+   * IMPORTANTE: sem /api — esta rota é na raiz do domínio Laravel.
+   * Ela quem seta o cookie XSRF-TOKEN usado na proteção CSRF.
+   */
+  csrf: () => axios.get(`${API_BASE}${csrfPath}`, { withCredentials: true }),
+
+  // Login com “lembrar-me”: passe { remember: true } do seu formulário
   login: (payload) => api.post('/auth/login', payload).then(r => r.data),
+
   logout: () => api.post('/auth/logout').then(r => r.data),
   me: () => api.get('/auth/me').then(r => r.data),
+
+  // --- Esqueci a senha / Reset de senha ---
+  // Envia e-mail com link de redefinição
+  forgotPassword: async (email) => {
+    await authApi.csrf(); // garante o XSRF-TOKEN
+    return api.post('/auth/forgot-password', { email }).then(r => r.data);
+  },
+
+  // Efetiva a troca de senha com token recebido por e-mail
+  resetPassword: async ({ token, email, password, password_confirmation }) => {
+    await authApi.csrf();
+    return api
+      .post('/auth/reset-password', { token, email, password, password_confirmation })
+      .then(r => r.data);
+  },
 };
 
 // Builder para recursos REST (lista, cria, edita, remove…)
@@ -41,7 +65,7 @@ export const Mortes = Object.assign(resource('mortes'), {
   chart: (params) => http.get('/grafico-mortes', params),
 });
 export const Vacinas = resource('vacinas');
-export const Pesos = resource('pesos'); // ControlePeso
+export const Pesos = resource('pesos');
 export const Clientes = resource('clientes');
 export const Funcionarios = resource('funcionarios');
 export const Fornecedores = resource('fornecedores');
@@ -50,7 +74,7 @@ export const Formatos = resource('formatos');
 export const Vendas = resource('vendas');
 export const Despesas = resource('despesas');
 
-// Parâmetros (mantive prefixos amigáveis)
+// Parâmetros
 export const ParamProgramaLuz = resource('param/programa-luz');
 export const ParamProgramaVacinacao = resource('param/programa-vacinacao');
 export const ParamDetalheProgramaVac = resource('param/detalhe-programa-vacinacao');

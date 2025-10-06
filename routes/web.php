@@ -1,44 +1,7 @@
 <?php
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ClientesController;
-use App\Http\Controllers\ColaboratorsController;
-use App\Http\Controllers\ColetasController;
-use App\Http\Controllers\ConfirmAccountController;
-use App\Http\Controllers\ControlePesoController;
-use App\Http\Controllers\DashboardsController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\DescartesController;
-use App\Http\Controllers\DespesasController;
-use App\Http\Controllers\FormasPgtoController;
-use App\Http\Controllers\FormatosController;
-use App\Http\Controllers\ForncedoresController;
-use App\Http\Controllers\FuncionariosController;
-use App\Http\Controllers\GalpoesController;
-use App\Http\Controllers\LotesController;
-use App\Http\Controllers\MortesController;
-use App\Http\Controllers\NucleosController;
-use App\Http\Controllers\ParamCategoriaDespesaController;
-use App\Http\Controllers\ParamConsumoAguaController;
-use App\Http\Controllers\ParamConsumoRacaoController;
-use App\Http\Controllers\ParamControlePesoController;
-use App\Http\Controllers\ParamDetalheProgramaVacinacaoController;
-use App\Http\Controllers\ParamFaseAveController;
-use App\Http\Controllers\ParamLinhagensController;
-use App\Http\Controllers\ParamMortalidadeController;
-use App\Http\Controllers\ParamNaturezaDespesa;
-use App\Http\Controllers\ParamNaturezaDespesaController;
-use App\Http\Controllers\ParamProgramaLuzController;
-use App\Http\Controllers\ParamProgramaVacinacaoController;
-use App\Http\Controllers\ParamTipoDespesaController;
-use App\Http\Controllers\ParamVacinaController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RhManagementController;
-use App\Http\Controllers\RhUserController;
-use App\Http\Controllers\VacinasController;
-use App\Http\Controllers\VendasController;
-use App\Models\Cliente;
-use App\Models\ParamCategoriaDespesa;
-use App\Models\ParamDetalheProgramaVacinacao;
-use App\Models\ParamMortalidade;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\CsrfCookieController;
+
+Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show'])
+    ->name('api.csrf-cookie');

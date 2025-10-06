@@ -17,16 +17,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { AddItemModal } from '@/components/AddItemModal'
 
-export function GenericList({ 
-  title, 
-  description, 
-  data = [], 
+export function GenericList({
+  title,
+  description,
+  data = [],
   columns = [],
   onAdd,
   onEdit,
   onDelete,
-  onView
+  onView,
+  modalConfig = null
 }) {
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -43,7 +45,17 @@ export function GenericList({
           <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
           <p className="text-muted-foreground">{description}</p>
         </div>
-        {onAdd && (
+        {modalConfig ? (
+          <AddItemModal
+            title={modalConfig.title}
+            description={modalConfig.description}
+            buttonText={modalConfig.buttonText}
+            schema={modalConfig.schema}
+            fields={modalConfig.fields}
+            onSubmit={modalConfig.onSubmit}
+            defaultValues={modalConfig.defaultValues}
+          />
+        ) : onAdd && (
           <Button className="gap-2" onClick={onAdd}>
             <Plus className="w-4 h-4" />
             Adicionar
@@ -116,7 +128,7 @@ export function GenericList({
                             </DropdownMenuItem>
                           )}
                           {onDelete && (
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => onDelete(item)}
                             >

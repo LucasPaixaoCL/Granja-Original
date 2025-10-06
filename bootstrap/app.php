@@ -13,10 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Para SPA com Sanctum + cookies:
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // customizações opcionais de exceçõesuji
+        // customizações opcionais de exceções
     })
     ->create();

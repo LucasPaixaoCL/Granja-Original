@@ -8,13 +8,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Password;
 
 class AuthApiController extends Controller
 {
   /**
    * POST /api/auth/login
-   * Requer que o front chame /sanctum/csrf-cookie antes (para setar XSRF-TOKEN).
-   * Usa sessão + cookie (Sanctum SPA), NÃO tokens pessoais.
+   * Requer /sanctum/csrf-cookie antes (front deve enviar X-XSRF-TOKEN).
+   * Usa sessão + cookies (Sanctum SPA).
    */
   public function login(Request $request)
   {
@@ -24,10 +27,12 @@ class AuthApiController extends Controller
       'remember' => ['sometimes', 'boolean'],
     ]);
 
-    if (!Auth::attempt(
+    $ok = Auth::guard('web')->attempt(
       ['email' => $data['email'], 'password' => $data['password']],
-      $data['remember'] ?? false
-    )) {
+      (bool) ($data['remember'] ?? false) // <- “Lembrar-me”
+    );
+
+    if (!$ok) {
       throw ValidationException::withMessages([
         'email' => ['Credenciais inválidas.'],
       ]);
@@ -48,7 +53,11 @@ class AuthApiController extends Controller
    */
   public function me(Request $request)
   {
-    return response()->json($request->user(), 200);
+    $user = $request->user();
+    if (!$user) {
+      return response()->json(['message' => 'Unauthenticated.'], 401);
+    }
+    return response()->json($user, 200);
   }
 
   /**
@@ -58,6 +67,7 @@ class AuthApiController extends Controller
   public function logout(Request $request)
   {
     Auth::guard('web')->logout();
+
     $request->session()->invalidate();
     $request->session()->regenerateToken();
 
@@ -66,7 +76,6 @@ class AuthApiController extends Controller
 
   /**
    * GET /api/user/profile
-   * Perfil do usuário logado (equivalente ao seu ProfileController@index, porém JSON).
    */
   public function profile(Request $request)
   {
@@ -77,7 +86,6 @@ class AuthApiController extends Controller
 
   /**
    * PUT /api/user/profile
-   * Atualiza nome/email do usuário logado.
    */
   public function updateUserData(Request $request)
   {
@@ -103,29 +111,77 @@ class AuthApiController extends Controller
 
   /**
    * PUT /api/user/password
-   * Atualiza senha do usuário logado, validando a senha atual.
    */
   public function updatePassword(Request $request)
   {
     $user = $request->user();
 
     $validated = $request->validate([
-      'current_password'      => ['required', 'string', 'min:8', 'max:64'],
-      'new_password'          => ['required', 'string', 'min:8', 'max:64', 'different:current_password'],
+      // valida a senha atual no guard web
+      'current_password'          => ['required', 'current_password:web'],
+      'new_password'              => ['required', 'string', 'min:8', 'max:64', 'different:current_password'],
       'new_password_confirmation' => ['required', 'same:new_password'],
     ]);
-
-    if (!Hash::check($validated['current_password'], $user->password)) {
-      return response()->json([
-        'message' => 'A senha atual está incorreta.',
-      ], 422);
-    }
 
     $user->password = Hash::make($validated['new_password']);
     $user->save();
 
-    return response()->json([
-      'message' => 'Senha atualizada',
-    ], 200);
+    return response()->json(['message' => 'Senha atualizada'], 200);
+  }
+
+  /**
+   * POST /api/auth/forgot-password
+   * Envia e-mail com link de redefinição (token).
+   */
+  public function forgotPassword(Request $request)
+  {
+    $validated = $request->validate([
+      'email' => ['required', 'email'],
+    ]);
+
+    $status = Password::sendResetLink(['email' => $validated['email']]);
+
+    if ($status === Password::RESET_LINK_SENT) {
+      return response()->json(['message' => __($status)], 200);
+    }
+
+    return response()->json(['message' => __($status)], 422);
+  }
+
+  /**
+   * POST /api/auth/reset-password
+   * Reseta a senha usando token enviado por e-mail.
+   */
+  public function resetPassword(Request $request)
+  {
+    $validated = $request->validate([
+      'token'                 => ['required', 'string'],
+      'email'                 => ['required', 'email'],
+      'password'              => ['required', 'confirmed', 'min:8', 'max:64'],
+      // password_confirmation vem do 'confirmed'
+    ]);
+
+    $status = Password::reset(
+      [
+        'email'                 => $validated['email'],
+        'password'              => $validated['password'],
+        'password_confirmation' => $request->password_confirmation,
+        'token'                 => $validated['token'],
+      ],
+      function ($user) use ($validated) {
+        $user->forceFill([
+          'password'       => Hash::make($validated['password']),
+          'remember_token' => Str::random(60),
+        ])->save();
+
+        event(new PasswordReset($user));
+      }
+    );
+
+    if ($status === Password::PASSWORD_RESET) {
+      return response()->json(['message' => __($status)], 200);
+    }
+
+    return response()->json(['message' => __($status)], 422);
   }
 }
